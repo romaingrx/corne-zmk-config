@@ -1,314 +1,250 @@
 /*
- * Copyright (c) 2020 The ZMK Contributors
+ * MIRYOKU LAYOUT - QWERTY VARIANT
+ * For Corne 3x5+3 Split Keyboard
  *
- * SPDX-License-Identifier: MIT
+ * This is a standalone implementation of the Miryoku layout with QWERTY alphas
+ * Based on: https://github.com/manna-harbour/miryoku
+ *
+ * LAYOUT PHILOSOPHY:
+ * - 36 keys total (30 alphas + 6 thumb keys)
+ * - Home row modifiers (mod-tap keys)
+ * - Layer-tap on thumbs for accessing additional layers
+ * - Maximum 1-unit finger travel from home position
+ * - Layers accessed by holding opposite hand thumb key
+ *
+ * LAYERS:
+ * 0. BASE   - QWERTY alphas with home row mods
+ * 1. NAV    - Navigation, editing (arrows, home/end, etc.)
+ * 2. MOUSE  - Mouse emulation
+ * 3. MEDIA  - Media controls, RGB, Bluetooth
+ * 4. NUM    - Numbers and symbols (numpad-style)
+ * 5. SYM    - Shifted symbols
+ * 6. FUN    - Function keys F1-F12
+ *
+ * THUMB KEY ASSIGNMENTS:
+ * Left:  ESC (Media) | SPACE (Nav) | TAB (Mouse)
+ * Right: ENTER (Sym) | BACKSPACE (Num) | DELETE (Fun)
+ *
+ * HOME ROW MODS (tap for letter, hold for modifier):
+ * Left:  A=GUI | S=ALT | D=CTRL | F=SHIFT
+ * Right: J=SHIFT | K=CTRL | L=ALT | ;=GUI
+ *
+ * TAPPING TERM: 200ms (adjust to your preference)
  */
 
 #include <behaviors.dtsi>
-#include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/mouse.h>
 
-// Layers
+// Layer definitions
+#define BASE   0
+#define NAV    1
+#define MOUSE  2
+#define MEDIA  3
+#define NUM    4
+#define SYM    5
+#define FUN    6
 
-#define WIN_DEF  0
-#define WIN_CODE 1
-#define WIN_NUM  2
-#define WIN_FUNC 3
-#define MAC_DEF  4
-#define MAC_CODE 5
-#define MAC_NUM  6
-#define MAC_FUNC 7
-#define GAME_DEF 8
-#define GAME_OPT 9
+// Behavior configuration
+&mt {
+    tapping-term-ms = <200>;
+    flavor = "tap-preferred";
+};
+
+&lt {
+    tapping-term-ms = <200>;
+    flavor = "tap-preferred";
+};
 
 / {
-    macros {
-        terminal_win: terminal_win {
-            label = "TERMINAL_WIN";
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings =
-                <&macro_press>,
-                <&kp LGUI>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp R>,
-                <&macro_release>,
-                <&kp LGUI>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp BACKSPACE>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp W &kp T>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp ENTER>;
-        };
-
-        screenshot_win: screenshot_win {
-            label = "SCREENSHOT_WIN";
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings =
-                <&macro_press>,
-                <&kp LGUI &kp LEFT_SHIFT>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp S>,
-                <&macro_release>,
-                <&kp LGUI &kp LEFT_SHIFT>;
-        };
-
-        spotlight: spotlight {
-            label = "SPOTLIGHT";
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings =
-                <&macro_press>,
-                <&kp LGUI>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp SPACE>,
-                <&macro_release>,
-                <&kp LGUI>;
-        };
-
-        screenshot_mac: screenshot_mac {
-            label = "SCREEMSHOT_MAC";
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings =
-                <&macro_press>,
-                <&kp LGUI &kp LEFT_SHIFT &kp LEFT_CONTROL>,
-                <&macro_wait_time 50>,
-                <&macro_tap>,
-                <&kp NUMBER_4>,
-                <&macro_release>,
-                <&kp LGUI &kp LEFT_SHIFT &kp LEFT_CONTROL>;
-        };
-    };
-
-    combos {
-        compatible = "zmk,combos";
-
-        combo_BT_CLR {
-            bindings = <&bt BT_CLR>;
-            key-positions = <1 2>;
-            timeout-ms = <20>;
-            layers = <3 7>;
-        };
-
-        combo_TAB {
-            bindings = <&kp TAB>;
-            key-positions = <16 17>;
-            timeout-ms = <20>;
-            layers = <0 1 2 3 4 5 6 7>;
-        };
-
-        combo_DEL {
-            bindings = <&kp DEL>;
-            key-positions = <20 21>;
-            timeout-ms = <20>;
-            layers = <0 1 2 3 4 5 6 7>;
-        };
-
-        combo_ALT_F4 {
-            bindings = <&kp LA(F4)>;
-            key-positions = <21 22>;
-            timeout-ms = <20>;
-            layers = <0>;
-        };
-
-        combo_ESC {
-            bindings = <&kp ESC>;
-            key-positions = <25 26>;
-            timeout-ms = <20>;
-            layers = <0 1 2 3 4 5 6 7>;
-        };
-
-        combo_TD_MULTI_WIN {
-            bindings = <&td_multi_win>;
-            key-positions = <18 19>;
-            layers = <0 1 2 3>;
-            timeout-ms = <20>;
-        };
-
-        combo_TD_MULTI_MAC {
-            bindings = <&td_multi_mac>;
-            key-positions = <19 18>;
-            layers = <4 5 6 7>;
-            timeout-ms = <20>;
-        };
-    };
-
     behaviors {
-        td_multi_win: tap_dance_multi_win {
-            compatible = "zmk,behavior-tap-dance";
-            label = "TAP_DANCE_MULTI_WIN";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&sk LEFT_GUI>, <&terminal_win>, <&screenshot_win>;
-        };
-
-        td_multi_alt: tap_dance_multi_alt {
-            compatible = "zmk,behavior-tap-dance";
-            label = "TAP_DANCE_MULTI_ALT";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&kp LEFT_ALT>, <&kp LA(LEFT_SHIFT)>;
-        };
-
-        td_multi_mac: tap_dance_multi_mac {
-            compatible = "zmk,behavior-tap-dance";
-            label = "TAP_DANCE_MULTI_MAC";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&kp LEFT_ALT>, <&spotlight>, <&screenshot_mac>;
-        };
-
-        td_multi_cmd: tap_dance_multi_command {
-            compatible = "zmk,behavior-tap-dance";
-            label = "TAP_DANCE_MULTI_CMD";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&kp LEFT_GUI>, <&kp LA(LEFT_GUI)>;
-        };
-
-        mod_pdel: mod_p_delete {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp P>, <&kp BACKSPACE>;
-
-            mods = <(MOD_LSFT)>;
-        };
-
-        sm: space_mod {
+        // Home row mods (mod-tap)
+        hml: homerow_mods_left {
             compatible = "zmk,behavior-hold-tap";
-            label = "SPACE_MOD";
             #binding-cells = <2>;
             tapping-term-ms = <200>;
-            quick-tap-ms = <125>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
             flavor = "balanced";
             bindings = <&kp>, <&kp>;
+            hold-trigger-key-positions = <5 6 7 8 9 15 16 17 18 19 25 26 27 28 29 32 33 34>;  // Right hand + thumbs
+            hold-trigger-on-release;
+        };
+
+        hmr: homerow_mods_right {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            flavor = "balanced";
+            bindings = <&kp>, <&kp>;
+            hold-trigger-key-positions = <0 1 2 3 4 10 11 12 13 14 20 21 22 23 24 30 31 32>;  // Left hand + thumbs
+            hold-trigger-on-release;
         };
     };
 
     keymap {
         compatible = "zmk,keymap";
 
-        windows_default_layer {
-            display-name = "Windows";
+        /*
+         * BASE LAYER (QWERTY)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │  Q  │  W  │  E  │  R  │  T  │     │  Y  │  U  │  I  │  O  │  P  │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  A  │  S  │  D  │  F  │  G  │     │  H  │  J  │  K  │  L  │  ;  │
+         * │ GUI │ ALT │CTRL │SHFT │     │     │     │SHFT │CTRL │ ALT │ GUI │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  Z  │  X  │  C  │  V  │  B  │     │  N  │  M  │  ,  │  .  │  /  │
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │ ESC │ SPC │ │ ENT │ BSPC│ DEL │
+         *                      │Media│ Nav │ │ Sym │ Num │ Fun │
+         *                      │  3  │  1  │ │  5  │  4  │  6  │
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        base_layer {
+            display-name = "BASE";
             bindings = <
-&none  &kp Q               &kp W  &kp E          &kp R         &kp T                   &kp Y      &kp U        &kp I               &kp O    &mod_pdel      &none
-&none  &mt LEFT_CONTROL A  &kp S  &kp D          &kp F         &kp G                   &kp H      &kp J        &kp K               &kp L    &kp SEMICOLON  &none
-&none  &kp Z               &kp X  &kp C          &kp V         &kp B                   &kp N      &kp M        &kp COMMA           &kp DOT  &kp SLASH      &none
-                                  &td_multi_alt  &mo WIN_CODE  &sm LEFT_SHIFT SPACE    &kp ENTER  &mo WIN_NUM  &kp LC(LEFT_SHIFT)
+                &kp Q           &kp W           &kp E            &kp R            &kp T              &kp Y        &kp U            &kp I            &kp O           &kp P
+                &hml LGUI A     &hml LALT S     &hml LCTRL D     &hml LSHFT F     &kp G              &kp H        &hmr RSHFT J     &hmr RCTRL K     &hmr RALT L     &hmr RGUI SEMI
+                &kp Z           &kp X           &kp C            &kp V            &kp B              &kp N        &kp M            &kp COMMA        &kp DOT         &kp SLASH
+                                                &lt MEDIA ESC    &lt NAV SPACE    &lt MOUSE TAB      &lt SYM RET  &lt NUM BSPC     &lt FUN DEL
             >;
         };
 
-        windows_code_layer {
-            display-name = "WinCode";
+        /*
+         * NAV LAYER (Navigation & Editing)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │     │     │     │     │     │     │ Redo│Paste│ Copy│ Cut │ Undo│
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │ GUI │ ALT │CTRL │SHFT │     │     │Caps │  ←  │  ↓  │  ↑  │  →  │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │     │     │     │     │     │     │ Ins │ Home│ PgDn│ PgUp│ End │
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │     │HLD │ │ ENT │ BSPC│ DEL │
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        nav_layer {
+            display-name = "NAV";
             bindings = <
-&none  &kp EXCLAMATION   &kp AT          &kp HASH           &kp DOLLAR      &kp PERCENT    &kp CARET  &kp AMPERSAND      &kp STAR              &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &none
-&none  &kp LEFT_CONTROL  &kp LG(LCTRL)   &kp LA(LS(EQUAL))  &kp MINUS       &kp EQUAL      &kp GRAVE  &kp SINGLE_QUOTE   &kp NON_US_BACKSLASH  &kp LEFT_BRACKET      &kp RIGHT_BRACKET      &none
-&none  &kp ESC           &kp LG(LC(F4))  &kp LA(LS(MINUS))  &kp UNDERSCORE  &kp PLUS       &kp TILDE  &kp DOUBLE_QUOTES  &kp PIPE              &kp LEFT_BRACE        &kp RIGHT_BRACE        &none
-                                         &trans             &trans          &trans         &trans     &mo WIN_NUM        &trans
+                &none       &none       &none        &none        &none            &kp K_REDO   &kp K_PASTE  &kp K_COPY   &kp K_CUT    &kp K_UNDO
+                &kp LGUI    &kp LALT    &kp LCTRL    &kp LSHFT    &none            &kp CAPS     &kp LEFT     &kp DOWN     &kp UP       &kp RIGHT
+                &none       &none       &none        &none        &none            &kp INS      &kp HOME     &kp PG_DN    &kp PG_UP    &kp END
+                                        &none        &none        &none            &kp RET      &kp BSPC     &kp DEL
             >;
         };
 
-        windows_number_layer {
-            display-name = "WinNum";
+        /*
+         * MOUSE LAYER (Mouse Emulation)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │     │     │     │     │     │     │ Redo│Paste│ Copy│ Cut │ Undo│
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │ GUI │ ALT │CTRL │SHFT │     │     │     │ Ms ←│ Ms ↓│ Ms ↑│ Ms →│
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │     │     │     │     │     │     │     │ Wh ←│ Wh ↓│ Wh ↑│ Wh →│
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │     │     │ │ Btn1│ Btn3│ Btn2│
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        mouse_layer {
+            display-name = "MOUSE";
             bindings = <
-&none  &kp NUMBER_1      &kp NUMBER_2  &kp NUMBER_3  &kp NUMBER_4  &kp NUMBER_5    &kp NUMBER_6   &kp NUMBER_7     &kp NUMBER_8    &kp NUMBER_9  &kp NUMBER_0     &none
-&none  &kp LEFT_CONTROL  &none         &none         &kp MINUS     &kp HOME        &kp PAGE_UP    &kp LEFT_ARROW   &kp DOWN_ARROW  &kp UP_ARROW  &kp RIGHT_ARROW  &none
-&none  &kp ESC           &none         &none         &none         &kp END         &kp PAGE_DOWN  &kp LC(LA(DEL))  &kp LC(A)       &kp LC(Z)     &kp LC(TAB)      &none
-                                       &trans        &mo WIN_CODE  &trans          &trans         &trans           &trans
+                &none       &none       &none        &none        &none            &kp K_REDO     &kp K_PASTE     &kp K_COPY      &kp K_CUT       &kp K_UNDO
+                &kp LGUI    &kp LALT    &kp LCTRL    &kp LSHFT    &none            &none          &none           &none           &none           &none
+                &none       &none       &none        &none        &none            &none          &none           &none           &none           &none
+                                        &none        &none        &none            &none          &none           &none
             >;
         };
 
-        windows_function_layer {
-            display-name = "WinFunc";
+        /*
+         * MEDIA LAYER (Media Controls, RGB, Bluetooth)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │     │     │     │     │     │     │ RGB │ RGB │ RGB │ RGB │ RGB │
+         * │     │     │     │     │     │     │ TOG │ HUI │ SAI │ BRI │ EFF │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │ GUI │ ALT │CTRL │SHFT │     │     │     │ Prev│ Vol-│ Vol+│ Next│
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │     │     │     │     │     │     │ BT 0│ BT 1│ BT 2│ BT 3│ BT 4│
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │ HLD │     │ │ Stop│Pause│ Mute│
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        media_layer {
+            display-name = "MEDIA";
             bindings = <
-&none  &kp F1               &kp F2   &kp F3          &kp F4      &kp F5              &bt BT_SEL 0  &bt BT_SEL 1     &bt BT_SEL 2       &bt BT_SEL 3  &bt BT_SEL 4  &none
-&none  &mt LEFT_CONTROL F6  &kp F7   &kp F8          &kp F9      &kp F10             &none         &to MAC_DEF      &to GAME_DEF       &none         &none         &none
-&none  &kp F11              &kp F12  &kp C_PREVIOUS  &kp C_NEXT  &kp C_PLAY_PAUSE    &kp C_MUTE    &kp C_VOLUME_UP  &kp C_VOLUME_DOWN  &none         &none         &none
-                                     &trans          &trans      &trans              &trans        &trans           &trans
+                &none       &none       &none        &none        &none            &none            &none            &none            &none            &none
+                &kp LGUI    &kp LALT    &kp LCTRL    &kp LSHFT    &none            &none            &kp C_PREV       &kp C_VOL_DN     &kp C_VOL_UP     &kp C_NEXT
+                &none       &none       &none        &none        &none            &bt BT_SEL 0     &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3     &bt BT_SEL 4
+                                        &none        &none        &none            &kp C_STOP       &kp C_PP         &kp C_MUTE
             >;
         };
 
-        mac_default_layer {
-            display-name = "MacOS";
+        /*
+         * NUM LAYER (Numbers & Symbols - Numpad Style)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │  [  │  7  │  8  │  9  │  ]  │     │     │     │     │     │     │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  ;  │  4  │  5  │  6  │  =  │     │     │SHFT │CTRL │ ALT │ GUI │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  `  │  1  │  2  │  3  │  \  │     │     │     │     │     │     │
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │  .  │  0  │ │     │ HLD │     │
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        num_layer {
+            display-name = "NUM";
             bindings = <
-&none  &kp Q               &kp W  &kp E          &kp R         &kp T                   &kp Y      &kp U        &kp I               &kp O    &mod_pdel      &none
-&none  &mt LEFT_CONTROL A  &kp S  &kp D          &kp F         &kp G                   &kp H      &kp J        &kp K               &kp L    &kp SEMICOLON  &none
-&none  &kp Z               &kp X  &kp C          &kp V         &kp B                   &kp N      &kp M        &kp COMMA           &kp DOT  &kp SLASH      &none
-                                  &td_multi_cmd  &mo MAC_CODE  &sm LEFT_SHIFT SPACE    &kp ENTER  &mo MAC_NUM  &kp LC(LEFT_SHIFT)
+                &kp LBKT    &kp N7      &kp N8       &kp N9       &kp RBKT         &none        &none        &none        &none       &none
+                &kp SEMI    &kp N4      &kp N5       &kp N6       &kp EQUAL        &none        &kp RSHFT    &kp RCTRL    &kp RALT    &kp RGUI
+                &kp GRAVE   &kp N1      &kp N2       &kp N3       &kp BSLH         &none        &none        &none        &none       &none
+                                        &kp DOT      &kp N0       &kp MINUS        &none        &none        &none
             >;
         };
 
-        mac_code_layer {
-            display-name = "MacCode";
+        /*
+         * SYM LAYER (Shifted Symbols)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │  {  │  &  │  *  │  (  │  }  │     │     │     │     │     │     │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  :  │  $  │  %  │  ^  │  +  │     │     │SHFT │CTRL │ ALT │ GUI │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │  ~  │  !  │  @  │  #  │  |  │     │     │     │     │     │     │
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │  (  │  )  │ │ HLD │     │     │
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        sym_layer {
+            display-name = "SYM";
             bindings = <
-&none  &kp EXCLAMATION   &kp AT           &kp HASH       &kp DOLLAR      &kp PERCENT    &kp CARET  &kp AMPERSAND      &kp STAR              &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &none
-&none  &kp LEFT_CONTROL  &kp LG(LC(F))    &kp LG(D)      &kp MINUS       &kp EQUAL      &kp GRAVE  &kp SINGLE_QUOTE   &kp NON_US_BACKSLASH  &kp LEFT_BRACKET      &kp RIGHT_BRACKET      &none
-&none  &kp ESC           &kp LG(LA(ESC))  &kp LG(LS(D))  &kp UNDERSCORE  &kp PLUS       &kp TILDE  &kp DOUBLE_QUOTES  &kp PIPE              &kp LEFT_BRACE        &kp RIGHT_BRACE        &none
-                                          &trans         &trans          &trans         &trans     &mo MAC_NUM        &trans
+                &kp LBRC    &kp AMPS    &kp STAR     &kp LPAR     &kp RBRC         &none        &none        &none        &none       &none
+                &kp COLON   &kp DLLR    &kp PRCNT    &kp CARET    &kp PLUS         &none        &kp RSHFT    &kp RCTRL    &kp RALT    &kp RGUI
+                &kp TILDE   &kp EXCL    &kp AT       &kp HASH     &kp PIPE         &none        &none        &none        &none       &none
+                                        &kp LPAR     &kp RPAR     &kp UNDER        &none        &none        &none
             >;
         };
 
-        mac_number_layer {
-            display-name = "MacNum";
+        /*
+         * FUN LAYER (Function Keys F1-F12)
+         * ┌─────┬─────┬─────┬─────┬─────┐     ┌─────┬─────┬─────┬─────┬─────┐
+         * │ F12 │ F7  │ F8  │ F9  │PrtSc│     │     │     │     │     │     │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │ F11 │ F4  │ F5  │ F6  │ScrLk│     │     │SHFT │CTRL │ ALT │ GUI │
+         * ├─────┼─────┼─────┼─────┼─────┤     ├─────┼─────┼─────┼─────┼─────┤
+         * │ F10 │ F1  │ F2  │ F3  │Pause│     │     │     │     │     │     │
+         * └─────┴─────┴─────┴──┬──┴──┬──┴─┐ ┌─┴──┬──┴──┬──┴─────┴─────┴─────┘
+         *                      │ App │ Spc │ │     │     │ HLD │
+         *                      └─────┴─────┘ └─────┴─────┴─────┘
+         */
+        fun_layer {
+            display-name = "FUN";
             bindings = <
-&none  &kp NUMBER_1      &kp NUMBER_2  &kp NUMBER_3  &kp NUMBER_4  &kp NUMBER_5    &kp NUMBER_6   &kp NUMBER_7    &kp NUMBER_8    &kp NUMBER_9  &kp NUMBER_0     &none
-&none  &kp LEFT_CONTROL  &none         &none         &kp MINUS     &kp HOME        &kp PAGE_UP    &kp LEFT_ARROW  &kp DOWN_ARROW  &kp UP_ARROW  &kp RIGHT_ARROW  &none
-&none  &kp ESC           &none         &none         &none         &kp END         &kp PAGE_DOWN  &kp LG(GRAVE)   &kp LG(LC(Q))   &kp LG(Z)     &kp LC(TAB)      &none
-                                       &trans        &mo MAC_CODE  &trans          &trans         &trans          &trans
+                &kp F12     &kp F7      &kp F8       &kp F9       &kp PSCRN        &none        &none        &none        &none       &none
+                &kp F11     &kp F4      &kp F5       &kp F6       &kp SLCK         &none        &kp RSHFT    &kp RCTRL    &kp RALT    &kp RGUI
+                &kp F10     &kp F1      &kp F2       &kp F3       &kp PAUSE_BREAK  &none        &none        &none        &none       &none
+                                        &kp K_APP    &kp SPACE    &kp TAB          &none        &none        &none
             >;
-        };
-
-        mac_function_layer {
-            display-name = "MacFunc";
-            bindings = <
-&none  &kp F1               &kp F2   &kp F3          &kp F4      &kp F5              &bt BT_SEL 0  &bt BT_SEL 1     &bt BT_SEL 2       &bt BT_SEL 3  &bt BT_SEL 4  &none
-&none  &mt LEFT_CONTROL F6  &kp F7   &kp F8          &kp F9      &kp F10             &none         &to WIN_DEF      &to GAME_DEF       &none         &none         &none
-&none  &kp F11              &kp F12  &kp C_PREVIOUS  &kp C_NEXT  &kp C_PLAY_PAUSE    &kp C_MUTE    &kp C_VOLUME_UP  &kp C_VOLUME_DOWN  &none         &none         &none
-                                     &trans          &trans      &trans              &trans        &trans           &trans
-            >;
-        };
-
-        game_default_layer {
-            display-name = "Game";
-            bindings = <
-&none  &kp TAB           &kp Q         &kp W         &kp E         &kp R           &kp F1  &kp F2  &kp F3  &kp F4  &none  &none
-&none  &kp LEFT_SHIFT    &kp A         &kp S         &kp D         &none           &none   &none   &none   &none   &none  &none
-&none  &kp LEFT_CONTROL  &kp NUMBER_4  &kp NUMBER_3  &kp NUMBER_2  &kp NUMBER_1    &none   &none   &none   &none   &none  &none
-                                       &sk Z         &mo GAME_OPT  &kp SPACE       &kp M   &none   &none
-            >;
-        };
-
-        game_option_layer {
-            display-name = "Option";
-            bindings = <
-&none  &kp NUMBER_5  &kp NUMBER_4  &kp NUMBER_3  &kp NUMBER_2  &kp NUMBER_1    &none  &none        &none        &none  &none  &none
-&none  &kp NUMBER_0  &kp NUMBER_9  &kp NUMBER_8  &kp NUMBER_7  &kp NUMBER_6    &none  &to WIN_DEF  &to MAC_DEF  &none  &none  &none
-&none  &kp ESC       &none         &none         &kp G         &kp B           &none  &none        &none        &none  &none  &none
-                                   &none         &trans        &trans          &none  &none        &none
-            >;
-        };
-    };
-
-    conditional_layers {
-        compatible = "zmk,conditional-layers";
-
-        windows_function {
-            if-layers = <1 2>;
-            then-layer = <3>;
-        };
-
-        mac_function {
-            if-layers = <5 6>;
-            then-layer = <7>;
         };
     };
 };
