@@ -5,7 +5,9 @@ manifest:
   projects:
     - name: zmk
       remote: zmkfirmware
-      revision: main
+      # Pinned to avoid future upstream API breakage (e.g. the Zephyr 4.1 board-variant
+      # migration in Dec 2025 that broke unpinned configs). Bump manually when needed.
+      revision: 753d8b467125fe860eec05ee71cb7ebefa08fba6  # zmkfirmware/zmk@main, 2026-05-23
       import: app/west.yml
   self:
     path: config

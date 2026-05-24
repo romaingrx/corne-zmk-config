@@ -2,4 +2,6 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    # Pinned to the same ZMK SHA as config/west.yml to keep the reusable workflow
+    # and the firmware source in lockstep. Bump both together.
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@753d8b467125fe860eec05ee71cb7ebefa08fba6  # zmkfirmware/zmk@main, 2026-05-23
