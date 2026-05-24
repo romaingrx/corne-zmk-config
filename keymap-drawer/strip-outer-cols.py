@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --quiet --script
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml"]
+# dependencies = ["pyyaml==6.0.3"]
 # ///
 """Strip the outer-column &none padding so a Miryoku Corne keymap renders as 3x5+3."""
 import sys
