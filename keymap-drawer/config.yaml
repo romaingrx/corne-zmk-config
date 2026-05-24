@@ -1,0 +1,7 @@
+parse_config:
+  zmk_keymap_keys_per_row: 12
+  raw_binding_map:
+    "&none": ""
+
+draw_config:
+  n_columns: 2
